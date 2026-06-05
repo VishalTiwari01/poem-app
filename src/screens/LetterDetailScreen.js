@@ -13,7 +13,15 @@ const LetterDetailScreen = ({ navigation, route }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    Tts.setDefaultRate(0.35); // Slow rate for kids
+    const setupTts = async () => {
+      try {
+        await Tts.getInitStatus();
+        Tts.setDefaultRate(0.35); // Slow rate for kids
+      } catch (err) {
+        console.log('LetterDetailScreen TTS Setup Error:', err);
+      }
+    };
+    setupTts();
     return () => {
       Tts.stop();
     };

@@ -16,36 +16,56 @@ const App = () => {
     const initTts = async () => {
       try {
         await Tts.getInitStatus();
+      } catch (err) {
+        console.log('TTS GetInitStatus Error:', err);
+        return;
+      }
+
+      try {
         await Tts.setDefaultEngine('com.google.android.tts');
+      } catch (err) {
+        console.log('TTS SetDefaultEngine Error:', err);
+      }
+
+      try {
+        await Tts.setDefaultLanguage('en-US');
+      } catch (err) {
+        console.log('TTS SetDefaultLanguage Error:', err);
+      }
+
+      try {
         const voices = await Tts.voices();
         
-        // Find high-quality smooth female voices (Neural/WaveNet are best)
-        const smoothFemaleVoices = voices.filter(v => 
+        // Find local/offline English voices to prevent network timeouts on emulators
+        const localEnglishVoices = voices.filter(v => 
           v.language.startsWith('en') && 
-          (v.id.includes('neural') || v.id.includes('wavenet') || v.id.includes('sfg') || v.id.includes('tpf'))
+          v.local === true && 
+          v.networkConnectionRequired === false
         );
 
-        const selectedVoice = smoothFemaleVoices[0] || voices.find(v => v.id.includes('network')) || voices.find(v => v.language.startsWith('en-US'));
+        // Find high-quality voices (tpf, sfg, neural, wavenet local variants)
+        const premiumVoices = localEnglishVoices.filter(v => 
+          v.id.includes('tpf') || v.id.includes('sfg') || v.id.includes('neural') || v.id.includes('wavenet')
+        );
+
+        const selectedVoice = premiumVoices[0] || localEnglishVoices[0] || voices.find(v => v.language.startsWith('en-US'));
 
         if (selectedVoice) {
-          console.log('Using Humanized Voice:', selectedVoice.id);
+          console.log('Using Local Voice:', selectedVoice.id);
           await Tts.setDefaultVoice(selectedVoice.id);
         }
-
-        await Tts.setDefaultLanguage('en-US');
-        await Tts.setDucking(true);
-        // Pitch 1.1 - 1.2 sounds more friendly/human for children
-        Tts.setDefaultPitch(1.15);      
-        // Rate 0.5 is standard human conversational speed
-        Tts.setDefaultRate(0.5, true); 
-
-
-
       } catch (err) {
-        console.log('TTS Global Init Error:', err);
+        console.log('TTS Voice Setup Error:', err);
+      }
+
+      try {
+        await Tts.setDucking(true);
+        Tts.setDefaultPitch(1.15);      
+        Tts.setDefaultRate(0.5, true); 
+      } catch (err) {
+        console.log('TTS Settings Error:', err);
       }
     };
-
 
     initTts();
 

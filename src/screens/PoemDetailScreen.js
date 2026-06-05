@@ -66,8 +66,16 @@ const PoemDetailScreen = ({ navigation, route }) => {
 
   // 4. TTS SETUP
   useEffect(() => {
-    Tts.setDefaultRate(0.22);
-    Tts.setDefaultPitch(1.0);
+    const setupTts = async () => {
+      try {
+        await Tts.getInitStatus();
+        Tts.setDefaultRate(0.22);
+        Tts.setDefaultPitch(1.0);
+      } catch (err) {
+        console.log('PoemDetailScreen TTS Setup Error:', err);
+      }
+    };
+    setupTts();
 
     const progressListener = Tts.addEventListener('tts-progress', (event) => {
       if (!isPlayingRef.current) return;

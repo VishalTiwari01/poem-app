@@ -6,7 +6,15 @@ import { COLORS, SPACING, RADIUS, SHADOWS } from '../theme/theme';
 const MascotGreeting = ({ message }) => {
   // Voice removed from auto-play as per user request
   useEffect(() => {
-    Tts.setDefaultRate(0.35); // Slow rate for kids
+    const setupTts = async () => {
+      try {
+        await Tts.getInitStatus();
+        Tts.setDefaultRate(0.35); // Slow rate for kids
+      } catch (err) {
+        console.log('MascotGreeting TTS Setup Error:', err);
+      }
+    };
+    setupTts();
   }, []);
 
 
